@@ -10,16 +10,7 @@ import Tarefa from './Tarefa';
 
 function ListaTarefas() {
     const [task_index, set_task_index] = useState(parseInt(localStorage.getItem('task_index')) || 0);
-    const [tarefas, set_tarefas] = useState(() => {
-        const tasks = [];
-        for (let i = 0; i < task_index; i++) {
-            const task = localStorage.getItem(`task_${i}`);
-            if (task) {
-                tasks.push(JSON.parse(task));
-            }
-        }
-        return tasks;
-    });
+    const [tarefas, set_tarefas] = useState(JSON.parse(localStorage.getItem('tasks')) || []);
     const [nova_tarefa, set_nova_tarefa] = useState({
         id: task_index,
         title: '',
@@ -38,14 +29,13 @@ function ListaTarefas() {
                 completed: false,
             });
 
-            localStorage.setItem(`task_${task_index}`, JSON.stringify(nova_tarefa));
-
-            set_task_index(task_index + 1); //incrementa corretamente (??)
-            localStorage.setItem('task_index', task_index + 1); //honestamente não sei por que precisa o +1, mas foi o que funcionou
+            set_task_index(task_index + 1); //incrementa o estado e o local storage
+            localStorage.setItem('task_index', task_index + 1);
 
             set_tarefas([...tarefas, nova_tarefa]);
+            localStorage.setItem('tasks', JSON.stringify([...tarefas, nova_tarefa]));
             set_nova_tarefa({
-                id: task_index + 1, //mema coisa, não sei porque precisa do +1
+                id: task_index + 1,
                 title: '',
                 description: '',
                 sub_tasks: [],
@@ -55,12 +45,21 @@ function ListaTarefas() {
     };
 
     const remove_tarefa = (index, id) => {
+        console.log(index);
         set_tarefas(tarefas.filter((_, i) => i !== index));
-        localStorage.removeItem(`task_${id}`);
+        localStorage.setItem('tasks', JSON.stringify(tarefas.filter((_, i) => i !== id)));
     };
+
+    const sort_tarefas = () => {
+        //const sorted_tarefas = tarefas.sort((a, b) => b.id - a.id);
+        set_tarefas([...tarefas.reverse()]);
+        localStorage.setItem('tasks', JSON.stringify([...tarefas]));
+        console.log(tarefas);
+    }
 
     return (
         <Container className='mt-5'>
+            <Button variant='primary' onClick={sort_tarefas}>Ordenar</Button>
             <Row>
                 <Col> 
                     <Container className='text-center, border border-2 rounded-3 p-3'>

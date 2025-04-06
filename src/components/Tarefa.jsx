@@ -13,23 +13,29 @@ import expand from '../assets/expand.svg';
 import remove from '../assets/remove.svg';
 
 function Tarefa({ tarefa, remove_tarefa, index }) {
-    const [open, set_open] = useState(false); //estado do collapse
-
-    const [subtarefas, set_subtarefas] = useState(tarefa.sub_tasks); //pega as subtarefas da tarefa
+    //estados essenciais de tarefa, subtarefa, e nova subtarefa
+    const [tarefa_check] = useState(tarefa);
+    const [tarefas] = useState(JSON.parse(localStorage.getItem('tasks')));
+    const [subtarefas, set_subtarefas] = useState(tarefa.sub_tasks || []); //pega as subtarefas da tarefa
     const [nova_subtarefa, set_nova_subtarefa] = useState({ //estado da nova subtarefa
         completed: false,
         text: '',
     });
-
+    //estados para display atualizado
+    const [id] = useState(tarefa.id);
+    const [title] = useState(tarefa.title);
+    const [description] = useState(tarefa.description);
     const [completed, set_completed] = useState(tarefa.completed); //estado da tarefa estar completa ou não
-    const [all_completed, set_all_completed] = useState(subtarefas.every(subtarefa => subtarefa.completed)); //estado de todas as subtarefas estarem completas ou não
+
+    const [open, set_open] = useState(false); //estado do collapse
+    const [all_completed, set_all_completed] = useState(subtarefas.every(subtarefa => subtarefa.completed) || true); //estado de todas as subtarefas estarem completas ou não
 
     //adicona uma nova subtarefa
     const add_subtarefa = () => {
         if (nova_subtarefa.text.trim() !== '') {
             set_subtarefas([...subtarefas, nova_subtarefa]); //adiciona para o estado e atualiza o objeto da tarefa
             tarefa.sub_tasks.push(nova_subtarefa);
-            localStorage.setItem(`task_${tarefa.id}`, JSON.stringify(tarefa)); //atualiza no local storage
+            localStorage.setItem('tasks', JSON.stringify(tarefas)); //atualiza no local storage
 
             set_nova_subtarefa({ //reseta a nova subtarefa
                 completed: false,
@@ -40,8 +46,8 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
 
     const remove_subtarefa = (index) => {
         set_subtarefas(subtarefas.filter((_, i) => i !== index)); //remove do estado, do objeto e do local storage
-        tarefa.sub_tasks.splice(index, 1);
-        localStorage.setItem(`task_${tarefa.id}`, JSON.stringify(tarefa));
+        tarefa.sub_tasks.splice(index, 1); //remove do objeto
+        localStorage.setItem('tasks', JSON.stringify(tarefas)); //atualiza no local storage
     };
 
     useEffect(() => { //verifica se todas as subtarefas estão completas para validar a completação(??) da tarefa
@@ -55,8 +61,12 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
                 tarefa.completed = false;
             }
         }
-        localStorage.setItem(`task_${tarefa.id}`, JSON.stringify(tarefa)); //atualiza a tarefa no local storage
-    }, [subtarefas, tarefa, tarefa.completed]); //mesmo que só use o subtarefas e o completed, precisa deixar as dependencias completas, portanto usa o tarefa também :3
+
+        tarefas[index] = tarefa; //atualiza a tarefa no array de tarefas
+        localStorage.setItem('tasks', JSON.stringify(tarefas)); //atualiza a tarefa no local storage
+    }, [index, subtarefas, tarefa, tarefas]); //só usa o subtarefas e tarefa como dependências, pois o index e tarefas não mudam
+
+    useEffect(() => {console.log('aaa')}, [tarefa_check]);
 
     const tarefa_inside = () => { //componentes internos em comum da tarefa com e sem descrição
         return (
@@ -93,11 +103,12 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
                     disabled={!all_completed} //só ligta o botão se todas as subtarefas estiverem completas
                     variant='secondary' 
                     onClick={() => {
-                        set_completed(!completed) //atualiza o estado da tarefa
-                        tarefa.completed = !completed;
+                        set_completed(!completed);
+                        tarefa.completed = !tarefa.completed;
+                        localStorage.setItem('tasks', JSON.stringify(tarefas)); //atualiza no local storage
                     }}
                 >Concluída</Button>
-                <Button className='mx-2' variant='danger' onClick={() => remove_tarefa(index, tarefa.id)}>Remover</Button> {/*remova a tarefa com uma callbacjk*/}
+                <Button className='mx-2' variant='danger' onClick={() => remove_tarefa(index, id)}>Remover</Button> {/*remova a tarefa com uma callbacjk*/}
             </>
         )
     }
@@ -106,7 +117,7 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
         <Card className='my-3'> {/*card da tarefa*/}
             <Card.Header as='h4' className='d-flex justify-content-between'> 
                 <div className='d-flex align-items-center'>
-                    <span className='pb-1 text-break'>{tarefa.title}</span> {/*mini padding de baixo para arrumar quando tem 2 ou mais linhas*/}
+                    <span className='pb-1 text-break'>{title}</span> {/*mini padding de baixo para arrumar quando tem 2 ou mais linhas*/}
                     <img className='px-2'  src={completed ? check : null} />
                 </div>
                 <Button //botão do collapse
@@ -119,9 +130,9 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
                     <img src={open ? collapse : expand}/> {/*icone de acordo com o estado do collapse*/}
                 </Button>
             </Card.Header>
-            {tarefa.description ? ( //troca entre os dois tipos de card (com ou sem descrição)
+            {description ? ( //troca entre os dois tipos de card (com ou sem descrição)
                 <Card.Body> 
-                    <Card.Text as="span" className='text-break'>{tarefa.description}</Card.Text>
+                    <Card.Text as="span" className='text-break'>{description}</Card.Text>
                     <Collapse in={open}>
                         <div id='collapse'>
                             {tarefa_inside()} {/*pega os componentes internos em comum*/}
