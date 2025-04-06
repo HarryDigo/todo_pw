@@ -6,68 +6,107 @@ import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 
+import Tarefa from './Tarefa';
+
 function ListaTarefas() {
-    const [tarefas, set_tarefas] = useState([]);
+    const [task_index, set_task_index] = useState(parseInt(localStorage.getItem('task_index')) || 0);
+    const [tarefas, set_tarefas] = useState(() => {
+        const tasks = [];
+        for (let i = 0; i < task_index; i++) {
+            const task = localStorage.getItem(`task_${i}`);
+            if (task) {
+                tasks.push(JSON.parse(task));
+            }
+        }
+        return tasks;
+    });
     const [nova_tarefa, set_nova_tarefa] = useState({
+        id: task_index,
         title: '',
         description: '',
         sub_tasks: [],
+        completed: false,
     });
 
     const add_tarefa = () => {
         if (nova_tarefa.title.trim() !== '') {
+            set_nova_tarefa({
+                id: task_index,
+                title: nova_tarefa.title,
+                description: nova_tarefa.description,
+                sub_tasks: [],
+                completed: false,
+            });
+
+            localStorage.setItem(`task_${task_index}`, JSON.stringify(nova_tarefa));
+
+            set_task_index(task_index + 1); //incrementa corretamente (??)
+            localStorage.setItem('task_index', task_index + 1); //honestamente não sei por que precisa o +1, mas foi o que funcionou
+
             set_tarefas([...tarefas, nova_tarefa]);
             set_nova_tarefa({
+                id: task_index + 1, //mema coisa, não sei porque precisa do +1
                 title: '',
                 description: '',
                 sub_tasks: [],
+                completed: false,
             });
         }
     };
 
-    const remove_tarefa = (index) => {
+    const remove_tarefa = (index, id) => {
         set_tarefas(tarefas.filter((_, i) => i !== index));
+        localStorage.removeItem(`task_${id}`);
     };
 
     return (
-        <Container fluid='md' className='border border-2 rounded-3 p-3'>
+        <Container className='mt-5'>
             <Row>
                 <Col> 
-                    <Form.Control
-                        type='text'
-                        value={nova_tarefa.title}
-                        onChange={(e) => set_nova_tarefa({
-                            title: e.target.value,
-                            description: nova_tarefa.description,
-                            sub_tasks: [],
-                        })}
-                        placeholder='Digite uma nova tarefa'
-                    />
-                    <Form.Control
-                        as='textarea'
-                        type='text'
-                        value={nova_tarefa.description}
-                        onChange={(e) => set_nova_tarefa({
-                            title: nova_tarefa.title,
-                            description: e.target.value,
-                            sub_tasks: [],
-                        })}
-                        placeholder='Digite a descrição'
-                    />
-                    <Button onClick={add_tarefa}>Adicionar</Button>
+                    <Container className='text-center, border border-2 rounded-3 p-3'>
+                        <h2>Lista de Tarefas</h2>
+                        {tarefas.length !== 0 ? (
+                            <ul className='p-0 m-2'>
+                                {tarefas.map((tarefa, index) => (
+                                    <li key={index}>
+                                        <Tarefa tarefa={tarefa} remove_tarefa={remove_tarefa} index={index} />
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <span className='text-muted'>Nenhuma tarefa cadastrada</span>
+                        )}
+                    </Container>
                 </Col>
                 <Col> 
-                    <h2>Lista de Tarefas</h2>
-                    <ul>
-                        {tarefas.map((tarefa, index) => (
-                            
-                            <li key={index}> {/*Exemplo teste, será transformado em componente próprio*/}
-                                <h3>{tarefa.title}</h3>
-                                <p>{tarefa.description ? tarefa.description : null}</p>
-                                <Button onClick={() => remove_tarefa(index)}>Remover</Button>
-                            </li>
-                        ))}
-                    </ul>
+                    <Container>
+                        <Form.Control
+                            type='text'
+                            value={nova_tarefa.title}
+                            onChange={(e) => set_nova_tarefa({
+                                id: nova_tarefa.id,
+                                title: e.target.value,
+                                description: nova_tarefa.description,
+                                sub_tasks: nova_tarefa.sub_tasks,
+                                completed: nova_tarefa.completed,
+                            })}
+                            placeholder='Digite uma nova tarefa'
+                        />
+                        <Form.Control
+                            as='textarea'
+                            type='text'
+                            value={nova_tarefa.description}
+                            onChange={(e) => set_nova_tarefa({
+                                id: nova_tarefa.id,
+                                title: nova_tarefa.title,
+                                description: e.target.value,
+                                sub_tasks: nova_tarefa.sub_tasks,
+                                completed: nova_tarefa.completed,
+                            })}
+                            placeholder='Digite a descrição (opcional)'
+                        />
+                        <Button variant='primary' onClick={add_tarefa}>Adicionar</Button>
+                    </Container>
                 </Col>
             </Row>
         </Container>
