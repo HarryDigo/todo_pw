@@ -13,8 +13,7 @@ import expand from '../assets/expand.svg';
 import remove from '../assets/remove.svg';
 
 function Tarefa({ tarefa, remove_tarefa, index }) {
-    //estados essenciais de tarefa, subtarefa, e nova subtarefa
-    const [tarefa_check] = useState(tarefa);
+    //estados essenciais de tarefa, subtarefa, e nova subtarefa=
     const [tarefas] = useState(JSON.parse(localStorage.getItem('tasks')));
     const [subtarefas, set_subtarefas] = useState(tarefa.sub_tasks || []); //pega as subtarefas da tarefa
     const [nova_subtarefa, set_nova_subtarefa] = useState({ //estado da nova subtarefa
@@ -22,7 +21,6 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
         text: '',
     });
     //estados para display atualizado
-    const [id] = useState(tarefa.id);
     const [title] = useState(tarefa.title);
     const [description] = useState(tarefa.description);
     const [completed, set_completed] = useState(tarefa.completed); //estado da tarefa estar completa ou não
@@ -66,8 +64,6 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
         localStorage.setItem('tasks', JSON.stringify(tarefas)); //atualiza a tarefa no local storage
     }, [index, subtarefas, tarefa, tarefas]); //só usa o subtarefas e tarefa como dependências, pois o index e tarefas não mudam
 
-    useEffect(() => {console.log('aaa')}, [tarefa_check]);
-
     const tarefa_inside = () => { //componentes internos em comum da tarefa com e sem descrição
         return (
             <>
@@ -108,7 +104,7 @@ function Tarefa({ tarefa, remove_tarefa, index }) {
                         localStorage.setItem('tasks', JSON.stringify(tarefas)); //atualiza no local storage
                     }}
                 >Concluída</Button>
-                <Button className='mx-2' variant='danger' onClick={() => remove_tarefa(index, id)}>Remover</Button> {/*remova a tarefa com uma callbacjk*/}
+                <Button className='mx-2' variant='danger' onClick={() => remove_tarefa(tarefas[index].id)}>Remover</Button> {/*remova a tarefa com uma callbacjk*/}
             </>
         )
     }
