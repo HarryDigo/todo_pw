@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
@@ -10,8 +10,9 @@ import Row from 'react-bootstrap/Row';
 import Tarefa from './Tarefa';
 
 function ListaTarefas() {
-    const [task_index, set_task_index] = useState(parseInt(localStorage.getItem('task_index')) || 0);
     const [tarefas, set_tarefas] = useState(JSON.parse(localStorage.getItem('tasks')) || []);
+    const [task_index, set_task_index] = useState(parseInt(localStorage.getItem('task_index')) || 0);
+    const [sort_type, set_sort_type] = useState(localStorage.getItem('sort_type') || 'order_desc')
     const [nova_tarefa, set_nova_tarefa] = useState({
         id: task_index,
         title: '',
@@ -19,8 +20,6 @@ function ListaTarefas() {
         sub_tasks: [],
         completed: false,
     });
-
-    let sort_type = localStorage.getItem('sort_type');
 
     const add_tarefa = () => {
         if (nova_tarefa.title.trim() !== '') {
@@ -34,11 +33,8 @@ function ListaTarefas() {
 
             const new_task_index = task_index + 1;
             set_task_index(new_task_index);
-            localStorage.setItem('task_index', new_task_index);
 
-            const new_tarefas = [...tarefas, nova_tarefa];
-            set_tarefas(new_tarefas);
-            localStorage.setItem('tasks', JSON.stringify(new_tarefas));
+            set_tarefas([...tarefas, nova_tarefa])
 
             set_nova_tarefa({
                 id: new_task_index,
@@ -50,38 +46,51 @@ function ListaTarefas() {
         }
     };
 
-    const remove_tarefa = (id) => {
-        const new_tarefas = [...tarefas].filter((a) => a.id !== id);
-        set_tarefas(new_tarefas);
-        localStorage.setItem('tasks', JSON.stringify(new_tarefas));
-        console.log(JSON.parse(localStorage.getItem('tasks')));
-        console.log(new_tarefas);
-        console.log(id)
+    const complete_tarefa = (id) => {
+        set_tarefas(tarefas.map((tarefa) => 
+            tarefa.id === id ? {
+                ...tarefa,
+                completed: !tarefa.completed
+            } :
+            tarefa
+        ))
+    }
 
-        update();
+    const remove_tarefa = (id) => {
+        set_tarefas(tarefas.filter((tarefa) => id !== tarefa.id))
     };
 
-    function update() {window.location.reload();}
+    const set_subtarefas = (id, subtarefas) => {
+        set_tarefas(
+            tarefas.map((tarefa) => {
+                tarefa.id === id ? {
+                    ...tarefa,
+                    sub_tasks: subtarefas
+                } :
+                tarefa
+            })
+        )
+    }
 
-    const sort_tarefas = () => {
-        let sorted_tarefas = tarefas;
+    useEffect(() => {
+        localStorage.setItem('tasks', JSON.stringify(tarefas))
+    }, [tarefas])
+
+    useEffect(() => {
+        const saved_tarefas = JSON.parse(localStorage.getItem('tasks'));
         switch (sort_type) {
             case 'order_desc':
-                sorted_tarefas = tarefas.sort((a, b) => b.id - a.id);
+                set_tarefas(saved_tarefas.sort((a, b) => b.id - a.id));
                 break;
             case 'order_asc':
-                sorted_tarefas = tarefas.sort((a, b) => a.id - b.id);
+                set_tarefas(saved_tarefas.sort((a, b) => a.id - b.id));
                 break;
             case 'title':
-                sorted_tarefas = tarefas.sort((a, b) => a.title.localeCompare(b.title))
+                set_tarefas(saved_tarefas.sort((a, b) => a.title.localeCompare(b.title)))
                 break;
             default: break;
         }
-        localStorage.setItem('tasks', JSON.stringify(sorted_tarefas));
-        set_tarefas(sorted_tarefas);
-
-        window.location.reload();
-    }
+    }, [sort_type])
 
     return (
         <Container className='mt-5'>
@@ -95,33 +104,26 @@ function ListaTarefas() {
                                 <ButtonGroup className='m-2'>
                                     <Button 
                                         variant={sort_type == 'order_asc' ? 'primary' : 'outline-primary'}
-                                        onClick={() => {
-                                            sort_type ='order_asc';
-                                            localStorage.setItem('sort_type', sort_type);
-                                            sort_tarefas();
-                                        }}
+                                        onClick={set_sort_type('order_asc')}
                                     >Mais velha</Button>
                                     <Button 
                                         variant={sort_type == 'order_desc' ? 'primary' : 'outline-primary'}
-                                        onClick={() => {
-                                            sort_type = 'order_desc';
-                                            localStorage.setItem('sort_type', sort_type);
-                                            sort_tarefas();
-                                        }}
+                                        onClick={set_sort_type('order_desc')}
                                     >Mais nova</Button>
                                     <Button 
                                         variant={sort_type == 'title' ? 'primary' : 'outline-primary'}
-                                        onClick={() => {
-                                            sort_type = 'title';
-                                            localStorage.setItem('sort_type', sort_type);
-                                            sort_tarefas();
-                                        }}
+                                        onClick={set_sort_type('title')}
                                     >Alfabética</Button>
                                 </ButtonGroup>
                                 <ul className='p-0 m-2'>
-                                    {tarefas.map((tarefa, index) => (
-                                        <li key={index}>
-                                            <Tarefa tarefa={tarefa} remove_tarefa={remove_tarefa} index={index} />
+                                    {tarefas.map((tarefa) => (
+                                        <li key={tarefa.id}>
+                                            <Tarefa 
+                                                tarefa={tarefa} 
+                                                set_subtarefas={set_subtarefas}
+                                                complete_tarefa={complete_tarefa} 
+                                                remove_tarefa={remove_tarefa}
+                                            />
                                         </li>
                                     ))}
                                 </ul>
