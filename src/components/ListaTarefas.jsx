@@ -10,8 +10,8 @@ import Row from 'react-bootstrap/Row';
 import Tarefa from './Tarefa';
 
 function ListaTarefas() {
-    const teste = JSON.parse(localStorage.getItem('tasks'))
-    const [tarefas, set_tarefas] = useState(teste === null ? [] : teste);
+    const saved_tarefas = JSON.parse(localStorage.getItem('tasks'))
+    const [tarefas, set_tarefas] = useState(saved_tarefas === null ? [] : saved_tarefas);
     const [task_index, set_task_index] = useState(parseInt(localStorage.getItem('task_index')) || 0);
     const [nova_tarefa, set_nova_tarefa] = useState({
         id: task_index,
