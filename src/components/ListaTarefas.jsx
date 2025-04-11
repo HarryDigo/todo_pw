@@ -61,7 +61,6 @@ function ListaTarefas() {
     };
 
     const set_subtarefas = (id, updated_tarefa) => {
-        console.log(updated_tarefa)
         set_tarefas(tarefas.map((tarefa) => 
             tarefa.id === id ?
             updated_tarefa :
@@ -70,7 +69,6 @@ function ListaTarefas() {
     }
 
     const sort_tarefas = (type) => {
-        console.log(type)
         switch (type) {
             case 'order_desc':
                 set_tarefas([...tarefas].sort((a, b) => b.id - a.id));
@@ -101,11 +99,11 @@ function ListaTarefas() {
                                 <ButtonGroup className='m-2'>
                                     <Button 
                                         variant='outline-primary'
-                                        onClick={() => sort_tarefas('order_desc')}
+                                        onClick={() => sort_tarefas('order_asc')}
                                     >Mais velha</Button>
                                     <Button 
                                         variant='outline-primary'
-                                        onClick={() => sort_tarefas('order_asc')}
+                                        onClick={() => sort_tarefas('order_desc')}
                                     >Mais nova</Button>
                                     <Button 
                                         variant='outline-primary'

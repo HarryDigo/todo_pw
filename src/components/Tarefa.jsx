@@ -24,7 +24,6 @@ function Tarefa({ tarefa, set_subtarefas, complete_tarefa, remove_tarefa }) {
 
     //adicona uma nova subtarefa
     const add_subtarefa = () => {
-        console.log(tarefa)
         if (nova_subtarefa.text.trim() !== '') {
             const updated_tarefa = {
                 ...tarefa,
