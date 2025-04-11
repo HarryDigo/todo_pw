@@ -10,9 +10,9 @@ import Row from 'react-bootstrap/Row';
 import Tarefa from './Tarefa';
 
 function ListaTarefas() {
-    const [tarefas, set_tarefas] = useState(JSON.parse(localStorage.getItem('tasks')) || []);
+    const teste = JSON.parse(localStorage.getItem('tasks'))
+    const [tarefas, set_tarefas] = useState(teste === null ? [] : teste);
     const [task_index, set_task_index] = useState(parseInt(localStorage.getItem('task_index')) || 0);
-    const [sort_type, set_sort_type] = useState(localStorage.getItem('sort_type') || 'order_desc')
     const [nova_tarefa, set_nova_tarefa] = useState({
         id: task_index,
         title: '',
@@ -60,37 +60,34 @@ function ListaTarefas() {
         set_tarefas(tarefas.filter((tarefa) => id !== tarefa.id))
     };
 
-    const set_subtarefas = (id, subtarefas) => {
-        set_tarefas(
-            tarefas.map((tarefa) => {
-                tarefa.id === id ? {
-                    ...tarefa,
-                    sub_tasks: subtarefas
-                } :
-                tarefa
-            })
-        )
+    const set_subtarefas = (id, updated_tarefa) => {
+        console.log(updated_tarefa)
+        set_tarefas(tarefas.map((tarefa) => 
+            tarefa.id === id ?
+            updated_tarefa :
+            tarefa
+        ))
     }
 
-    useEffect(() => {
-        localStorage.setItem('tasks', JSON.stringify(tarefas))
-    }, [tarefas])
-
-    useEffect(() => {
-        const saved_tarefas = JSON.parse(localStorage.getItem('tasks'));
-        switch (sort_type) {
+    const sort_tarefas = (type) => {
+        console.log(type)
+        switch (type) {
             case 'order_desc':
-                set_tarefas(saved_tarefas.sort((a, b) => b.id - a.id));
+                set_tarefas([...tarefas].sort((a, b) => b.id - a.id));
                 break;
             case 'order_asc':
-                set_tarefas(saved_tarefas.sort((a, b) => a.id - b.id));
+                set_tarefas([...tarefas].sort((a, b) => a.id - b.id));
                 break;
             case 'title':
-                set_tarefas(saved_tarefas.sort((a, b) => a.title.localeCompare(b.title)))
+                set_tarefas([...tarefas].sort((a, b) => a.title.localeCompare(b.title)))
                 break;
             default: break;
         }
-    }, [sort_type])
+    }
+
+    useEffect(() => localStorage.setItem('tasks', JSON.stringify(tarefas)), [tarefas])
+
+    useEffect(() => localStorage.setItem('task_index', JSON.stringify(task_index)), [task_index])
 
     return (
         <Container className='mt-5'>
@@ -103,21 +100,21 @@ function ListaTarefas() {
                                 <span className='ms-2 fs-5' as='h1'>Ordem:</span>
                                 <ButtonGroup className='m-2'>
                                     <Button 
-                                        variant={sort_type == 'order_asc' ? 'primary' : 'outline-primary'}
-                                        onClick={set_sort_type('order_asc')}
+                                        variant='outline-primary'
+                                        onClick={() => sort_tarefas('order_desc')}
                                     >Mais velha</Button>
                                     <Button 
-                                        variant={sort_type == 'order_desc' ? 'primary' : 'outline-primary'}
-                                        onClick={set_sort_type('order_desc')}
+                                        variant='outline-primary'
+                                        onClick={() => sort_tarefas('order_asc')}
                                     >Mais nova</Button>
                                     <Button 
-                                        variant={sort_type == 'title' ? 'primary' : 'outline-primary'}
-                                        onClick={set_sort_type('title')}
+                                        variant='outline-primary'
+                                        onClick={() => sort_tarefas('title')}
                                     >Alfabética</Button>
                                 </ButtonGroup>
                                 <ul className='p-0 m-2'>
-                                    {tarefas.map((tarefa) => (
-                                        <li key={tarefa.id}>
+                                    {tarefas.map((tarefa, index) => (
+                                        <li key={index}>
                                             <Tarefa 
                                                 tarefa={tarefa} 
                                                 set_subtarefas={set_subtarefas}
