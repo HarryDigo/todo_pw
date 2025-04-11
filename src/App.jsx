@@ -1,14 +1,12 @@
-import ListaTarefas from "./components/ListaTarefas";
+import ListaTarefas from './components/ListaTarefas';
 
-import './App.css';
-
-import 'bootstrap/dist/css/bootstrap.min.css'; //importa o bootstrap para o projeto
+import './App.scss'; //importa o bootstrap editado e css global
 
 function App() {
 
     return (
         <>
-            <h1>Gerenciador de Tarefas</h1>
+            <h1 className='text-center'>Gerenciador de Tarefas</h1>
             <ListaTarefas />
         </>
     );
